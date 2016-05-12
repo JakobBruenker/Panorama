@@ -26,3 +26,13 @@
 *.exe
 *.out
 *.app
+bin/
+obj/
+
+# Pictures
+*.ppm
+*.hdrgen
+*.exr
+
+# Config files
+*.cfg
