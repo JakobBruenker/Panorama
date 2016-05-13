@@ -30,6 +30,8 @@ bin/
 obj/
 
 # Pictures
+*.jpg
+*.jpeg
 *.ppm
 *.hdrgen
 *.exr
