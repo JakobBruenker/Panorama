@@ -5,7 +5,7 @@
 using namespace cimg_library;
 
 int main() {
-  Panorama pano = Panorama("test/escher.png");
+  Panorama pano = Panorama("test/1.png");
   CDisplay disp = pano.showImage();
   while (!disp.is_closed()) {
     CDisplay::wait_all();
