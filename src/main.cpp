@@ -1,15 +1,12 @@
 #include <CImg.h>
 
-#include "CDisplay.h"
+#include "Panorama.h"
 
 using namespace cimg_library;
 
-typedef unsigned char uchar;
-typedef unsigned int uint;
-
 int main() {
-  CImg<uchar> image("test/0.jpg");
-  CDisplay disp = CDisplay(CImgDisplay(image, "testim"));
+  Panorama pano = Panorama("test/escher.png");
+  CDisplay disp = pano.showImage();
   while (!disp.is_closed()) {
     CDisplay::wait_all();
   }

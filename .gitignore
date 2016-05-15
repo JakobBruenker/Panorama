@@ -30,6 +30,7 @@ bin/
 obj/
 
 # Pictures
+test/
 *.jpg
 *.jpeg
 *.ppm
