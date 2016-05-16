@@ -11,7 +11,7 @@ class Panorama {
   public:
     Panorama(const char* filename);
     cimg_library::CImgDisplay showImage();
-    cimg_library::CImgDisplay showFirstPerson(double yaw);
+    void showFirstPerson(double pitch, double yaw, cimg_library::CImgDisplay* disp);
 };
 
 #endif /* PANORAMA_H */

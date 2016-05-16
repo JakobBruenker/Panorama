@@ -69,7 +69,7 @@ double i2d(int i) {
 }
 
 const double HSIZE = 2;
-const double PITCH = 0;
+double pitch = 15;
 double yaw = 35;
 
 Panorama::Panorama(const char* pFilename) {
@@ -86,10 +86,18 @@ Panorama::Panorama(const char* pFilename) {
       double prayZ = (i2d(yoffs) / HEIGHT + 0.5) * VSIZE - (VSIZE / 2.);
       double c = cos(M_PI * yaw / 180);
       double s = sin(M_PI * yaw / 180);
-      double rayX = c * prayX - s * prayY;
-      double rayY = s * prayX + c * prayY;
-      double rayZ = prayZ;
-      double length = sqrt(rayZ*rayZ + rayY*rayY);
+      double qrayX = c * prayX - s * prayY;
+      double qrayY = s * prayX + c * prayY;
+      double qrayZ = prayZ;
+      c = cos(M_PI * pitch / 180);
+      s = sin(M_PI * pitch / 180);
+      double length = sqrt(qrayX*qrayX + qrayY*qrayY);
+      double rx = -qrayY;
+      double ry = qrayX;
+      double rayX = qrayX*(c+rx*rx*(1-c)) + qrayY*(rx*ry*(1-c)) + qrayZ*(ry*s);
+      double rayY = qrayX*(ry*rx*(1-c)) + qrayY*(c+ry*ry*(1-c)) + qrayZ*(-rx*s);
+      double rayZ = qrayX*(-ry*s) + qrayY*(rx*s) + qrayZ*c;
+      length = sqrt(rayZ*rayZ + rayY*rayY);
       double uy = -rayZ / length;
       double uz = rayY / length;
       double beta = acos(rayX / sqrt(rayX*rayX + rayY*rayY + rayZ*rayZ)) / 2;
@@ -124,8 +132,9 @@ CImgDisplay Panorama::showImage() {
   return CImgDisplay(image, "testball");
 }
 
-CImgDisplay Panorama::showFirstPerson(double delYaw) {
+void Panorama::showFirstPerson(double delPitch, double delYaw, CImgDisplay* disp) {
   yaw += delYaw;
+  pitch += delPitch; // TODO don't increase if >90
   double VSIZE = HSIZE * HEIGHT / WIDTH;
   CImg<double> orig(filename);
   image = CImg<double>(WIDTH, HEIGHT, 1, 3, 0);
@@ -138,10 +147,18 @@ CImgDisplay Panorama::showFirstPerson(double delYaw) {
       double prayZ = (i2d(yoffs) / HEIGHT + 0.5) * VSIZE - (VSIZE / 2.);
       double c = cos(M_PI * yaw / 180);
       double s = sin(M_PI * yaw / 180);
-      double rayX = c * prayX - s * prayY;
-      double rayY = s * prayX + c * prayY;
-      double rayZ = prayZ;
-      double length = sqrt(rayZ*rayZ + rayY*rayY);
+      double qrayX = c * prayX - s * prayY;
+      double qrayY = s * prayX + c * prayY;
+      double qrayZ = prayZ;
+      c = cos(M_PI * pitch / 180);
+      s = sin(M_PI * pitch / 180);
+      double length = sqrt(qrayX*qrayX + qrayY*qrayY);
+      double rx = -qrayY / length;
+      double ry = qrayX / length;
+      double rayX = qrayX*(c+rx*rx*(1-c)) + qrayY*(rx*ry*(1-c)) + qrayZ*(ry*s);
+      double rayY = qrayX*(ry*rx*(1-c)) + qrayY*(c-ry*ry*(1-c)) + qrayZ*(-rx*s);
+      double rayZ = qrayX*(-ry*s) + qrayY*(rx*s) + qrayZ*c;
+      length = sqrt(rayZ*rayZ + rayY*rayY);
       double uy = -rayZ / length;
       double uz = rayY / length;
       double beta = acos(rayX / sqrt(rayX*rayX + rayY*rayY + rayZ*rayZ)) / 2;
@@ -170,5 +187,5 @@ CImgDisplay Panorama::showFirstPerson(double delYaw) {
       image.draw_point(xoffs + (WIDTH / 2), yoffs + (HEIGHT / 2), pixel);
     }
   }
-  return CImgDisplay(image, "testball");
+  image.display(*disp);
 }
