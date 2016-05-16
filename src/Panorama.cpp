@@ -72,13 +72,15 @@ const double HSIZE = 2;
 double pitch = 15;
 double yaw = 35;
 
-Panorama::Panorama(const char* pFilename) {
-  filename = pFilename;
+void Panorama::calcFirstPerson() {
   double VSIZE = HSIZE * HEIGHT / WIDTH;
-  CImg<double> orig(filename);
-  image = CImg<double>(WIDTH, HEIGHT, 1, 3, 0);
   double x;
   double y;
+  double tc = cos(M_PI * yaw / 180);
+  double ts = sin(M_PI * yaw / 180);
+  double tlength = sqrt(tc*tc + ts*ts);
+  double pitchRotX = -ts / tlength;
+  double pitchRotY = tc / tlength;
   for (int xoffs = -WIDTH/2; xoffs < WIDTH/2; xoffs++) {
     for (int yoffs = -HEIGHT/2; yoffs < HEIGHT/2; yoffs++) {
       double prayX = 1;
@@ -92,8 +94,8 @@ Panorama::Panorama(const char* pFilename) {
       c = cos(M_PI * pitch / 180);
       s = sin(M_PI * pitch / 180);
       double length = sqrt(qrayX*qrayX + qrayY*qrayY);
-      double rx = -qrayY;
-      double ry = qrayX;
+      double rx = pitchRotX; //-qrayY / length;
+      double ry = pitchRotY; //qrayX / length;
       double rayX = qrayX*(c+rx*rx*(1-c)) + qrayY*(rx*ry*(1-c)) + qrayZ*(ry*s);
       double rayY = qrayX*(ry*rx*(1-c)) + qrayY*(c+ry*ry*(1-c)) + qrayZ*(-rx*s);
       double rayZ = qrayX*(-ry*s) + qrayY*(rx*s) + qrayZ*c;
@@ -128,6 +130,12 @@ Panorama::Panorama(const char* pFilename) {
   }
 }
 
+Panorama::Panorama(const char* filename) {
+  image = CImg<double>(WIDTH, HEIGHT, 1, 3, 0);
+  orig = CImg<double>(filename);
+  calcFirstPerson();
+}
+
 CImgDisplay Panorama::showImage() {
   return CImgDisplay(image, "testball");
 }
@@ -135,57 +143,6 @@ CImgDisplay Panorama::showImage() {
 void Panorama::showFirstPerson(double delPitch, double delYaw, CImgDisplay* disp) {
   yaw += delYaw;
   pitch += delPitch; // TODO don't increase if >90
-  double VSIZE = HSIZE * HEIGHT / WIDTH;
-  CImg<double> orig(filename);
-  image = CImg<double>(WIDTH, HEIGHT, 1, 3, 0);
-  double x;
-  double y;
-  for (int xoffs = -WIDTH/2; xoffs < WIDTH/2; xoffs++) {
-    for (int yoffs = -HEIGHT/2; yoffs < HEIGHT/2; yoffs++) {
-      double prayX = 1;
-      double prayY = (i2d(xoffs) / WIDTH + 0.5) * HSIZE - (HSIZE / 2.);
-      double prayZ = (i2d(yoffs) / HEIGHT + 0.5) * VSIZE - (VSIZE / 2.);
-      double c = cos(M_PI * yaw / 180);
-      double s = sin(M_PI * yaw / 180);
-      double qrayX = c * prayX - s * prayY;
-      double qrayY = s * prayX + c * prayY;
-      double qrayZ = prayZ;
-      c = cos(M_PI * pitch / 180);
-      s = sin(M_PI * pitch / 180);
-      double length = sqrt(qrayX*qrayX + qrayY*qrayY);
-      double rx = -qrayY / length;
-      double ry = qrayX / length;
-      double rayX = qrayX*(c+rx*rx*(1-c)) + qrayY*(rx*ry*(1-c)) + qrayZ*(ry*s);
-      double rayY = qrayX*(ry*rx*(1-c)) + qrayY*(c-ry*ry*(1-c)) + qrayZ*(-rx*s);
-      double rayZ = qrayX*(-ry*s) + qrayY*(rx*s) + qrayZ*c;
-      length = sqrt(rayZ*rayZ + rayY*rayY);
-      double uy = -rayZ / length;
-      double uz = rayY / length;
-      double beta = acos(rayX / sqrt(rayX*rayX + rayY*rayY + rayZ*rayZ)) / 2;
-      x = uz * sin(beta) * orig.width() / 2 + orig.width() / 2;
-      y = uy * sin(beta) * orig.height() / 2 + orig.height() / 2;
-
-      double aX = x - trunc(x);
-      double aY = y - trunc(y);
-      double pixel[3] = {0.};
-      uint origX = static_cast<uint>(x);
-      uint origY = orig.height() - 1 - static_cast<uint>(y);
-      uint origXp1 = origX + 1;
-      uint origYp1 = origY + 1;
-      if (origXp1 >= static_cast<uint>(orig.width())) {
-        origXp1 = origX;
-      }
-      if (origYp1 >= static_cast<uint>(orig.height())) {
-        origYp1 = origY;
-      }
-      for (uint color = 0; color < 3; color++) {
-        pixel[color] += (1 - aX) * (    aY) * orig(origX  , origY  , 0, color);
-        pixel[color] += (    aX) * (    aY) * orig(origXp1, origY  , 0, color);
-        pixel[color] += (1 - aX) * (1 - aY) * orig(origX  , origYp1, 0, color);
-        pixel[color] += (    aX) * (1 - aY) * orig(origXp1, origYp1, 0, color);
-      }
-      image.draw_point(xoffs + (WIDTH / 2), yoffs + (HEIGHT / 2), pixel);
-    }
-  }
+  calcFirstPerson();
   image.display(*disp);
 }

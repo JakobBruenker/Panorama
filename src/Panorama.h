@@ -6,7 +6,8 @@
 class Panorama {
   private:
     cimg_library::CImg<double> image;
-    const char* filename;
+    cimg_library::CImg<double> orig;
+    void calcFirstPerson();
 
   public:
     Panorama(const char* filename);
