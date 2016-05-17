@@ -6,21 +6,21 @@
 using namespace cimg_library;
 
 int main() {
-  Panorama pano = Panorama("/mnt/usbdrive/ex2crop/IMG_9405.png");
-  CImgDisplay disp = pano.showImage();
-  while (!disp.is_closed()) {
-    if (disp.is_keyARROWUP()) {
-      pano.showFirstPerson(-15., 0., &disp);
-    } else if (disp.is_keyARROWDOWN()) {
-      pano.showFirstPerson(15., 0., &disp);
-    } else if (disp.is_keyARROWLEFT()) {
-      pano.showFirstPerson(0., -15., &disp);
-    } else if (disp.is_keyARROWRIGHT()) {
-      pano.showFirstPerson(0., 15., &disp);
-    } else if (disp.is_keyQ()) {
+  Panorama pano = Panorama("test/escher.png");
+  CImgDisplay fpDisp = pano.showFirstPerson();
+  while (!fpDisp.is_closed()) {
+    if (fpDisp.is_keyARROWUP()) {
+      pano.updateFirstPerson(-15., 0., &fpDisp);
+    } else if (fpDisp.is_keyARROWDOWN()) {
+      pano.updateFirstPerson(15., 0., &fpDisp);
+    } else if (fpDisp.is_keyARROWLEFT()) {
+      pano.updateFirstPerson(0., -15., &fpDisp);
+    } else if (fpDisp.is_keyARROWRIGHT()) {
+      pano.updateFirstPerson(0., 15., &fpDisp);
+    } else if (fpDisp.is_keyQ()) {
       break;
     }
-    disp.wait();
+    CImgDisplay::wait_all();
   }
   return 0;
 }
