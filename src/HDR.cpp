@@ -11,6 +11,7 @@ typedef unsigned int uint;
 using namespace std;
 using namespace cimg_library;
 
+// returns the computed light values
 CImg<double>* HDR::getXs() {
   return xs;
 }
@@ -331,12 +332,14 @@ HDR::HDR() {
     numImages++;
   }
   hdrgen.close();
-  times = new double[numImages];
-  images = new CImg<uchar>[numImages];
-  loadIs();
-  loadImages();
-  initWeights();
-  xs = new CImg<double>(images[0].width(), images[0].height(), 1, 3, 0);
+  if (isHDR()) {
+    times = new double[numImages];
+    images = new CImg<uchar>[numImages];
+    loadIs();
+    loadImages();
+    initWeights();
+    xs = new CImg<double>(images[0].width(), images[0].height(), 1, 3, 0);
+  }
 }
 
 // destructor; frees some allocated memory
